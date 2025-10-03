@@ -927,14 +927,12 @@ class AgentsAnalytics:
     return fig
 
   @staticmethod
-  def visualize_grid_state(env_name: str, agent: EpisodesDataTransformer,
-                           timestamp_str: str, **kwargs):
+  def visualize_grid_state(observation_space, agent: EpisodesDataTransformer,
+                           episode_name: str, timestamp_str: str, **kwargs):
 
-    # uploading grid2op environment to get the observation_space
-    env = grid2op.make("l2rpn_neurips_2020_track1_small")
-    plot_helper = PlotMatplot(env.observation_space)
+    plot_helper = PlotMatplot(observation_space)
 
     # get the observation
-    obs = agent.get_observation_by_timestamp(timestamp_str)
+    obs = agent.get_observation_by_timestamp(episode_name, timestamp_str)
 
     return plot_helper.plot_obs(obs)

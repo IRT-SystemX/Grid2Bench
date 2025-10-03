@@ -126,7 +126,8 @@ class EpisodesDataTransformer:
       if timestamp in episode.timestamps:
         return episode.get_action_by_timestamp(timestamp)
 
-  def get_observation_by_timestamp(self, timestamp_str: str) -> BaseObservation:
+  def get_observation_by_timestamp(self, episode_name: str,
+                                   timestamp_str: str) -> BaseObservation:
     """Get the grid2op Observation object whose timestamp is date_time.
 
     :param timestamp_str: the datetime sought '%Y-%m-%d %H:%M:%S'
@@ -151,10 +152,14 @@ class EpisodesDataTransformer:
       print(obs)
 
     """
-    for episode in self.episodes_data:
-      timestamp = datetime.strptime(timestamp_str, '%Y-%m-%d %H:%M:%S')
-      if timestamp in episode.timestamps:
-        return episode.get_observation_by_timestamp(timestamp)
+    idx = self.episodes_names.index(episode_name)
+    episode = self.episodes_data[idx]
+    timestamp = datetime.strptime(timestamp_str, '%Y-%m-%d %H:%M:%S')
+
+    return episode.get_observation_by_timestamp(timestamp)
+
+
+
 
   def actions_freq_by_type_several_episodes(self, episodes_names: Optional[
     List] = None) -> pd.DataFrame:
@@ -626,7 +631,7 @@ class EpisodesDataTransformer:
 
   def action_sequences_to_dict(self, episodes_names: Optional[List] = None,
                                min_length: int = 0, max_length: int = 400) -> \
-  List[Dict]:
+      List[Dict]:
     """Helper function to transform sequence of actions df to dict.
 
     Transform the data structure and prepare it for plotting with plotly's
@@ -657,8 +662,8 @@ class EpisodesDataTransformer:
 
     return dict_list
 
-  def overloaded_lines_freq_several_episodes(self,
-      episodes_names: Optional[List] = None) -> pd.DataFrame:
+  def overloaded_lines_freq_several_episodes(self, episodes_names: Optional[
+    List] = None) -> pd.DataFrame:
     """Overloaded lines for all episodes in episodes_names.
 
     If episodes_names=None, then returns the results of all loaded episodes.
@@ -698,8 +703,9 @@ class EpisodesDataTransformer:
         overloaded_lines_for_episode_i = episode_data.overloaded_lines_by_timestamp()
 
         overloaded_lines_flatten = [list(item) for dict in
-          overloaded_lines_for_episode_i for key, item in dict.items() if
-          key == 'Overloaded lines']
+                                    overloaded_lines_for_episode_i for key, item
+                                    in dict.items() if
+                                    key == 'Overloaded lines']
 
         overloaded_lines = overloaded_lines + overloaded_lines_flatten
 
@@ -717,8 +723,8 @@ class EpisodesDataTransformer:
 
     return df
 
-  def disconnected_lines_freq_several_episodes(self,
-      episodes_names: Optional[List] = None) -> pd.DataFrame:
+  def disconnected_lines_freq_several_episodes(self, episodes_names: Optional[
+    List] = None) -> pd.DataFrame:
     """Disconnected lines for all episodes in episodes_names.
 
     If episodes_names=None, then returns the results of all loaded episodes.
@@ -757,8 +763,9 @@ class EpisodesDataTransformer:
       if episode_data.episode_name in episodes_names:
         disconnected_lines_for_episode_i = episode_data.disconnected_lines_by_timestamp()
         disconnected_lines_flatten = [list(item) for dict in
-          disconnected_lines_for_episode_i for key, item in dict.items() if
-          key == 'Disconnected lines']
+                                      disconnected_lines_for_episode_i for
+                                      key, item in dict.items() if
+                                      key == 'Disconnected lines']
 
         disconnected_lines = disconnected_lines + disconnected_lines_flatten
 
@@ -798,11 +805,11 @@ class EpisodesDataTransformer:
           if (not len(
               episodes_names)) or episode_data.episode_name in episodes_names:
             functions = {'Tolopology': episode_data.create_topology_df,
-              'Force_line': episode_data.create_force_line_df,
-              'Redispatching': episode_data.create_dispatch_df,
-              'Injection': episode_data.create_injection_df,
-              'Curtailment': episode_data.create_curtailment_df,
-              'Storage': episode_data.create_storage_df}
+                         'Force_line': episode_data.create_force_line_df,
+                         'Redispatching': episode_data.create_dispatch_df,
+                         'Injection': episode_data.create_injection_df,
+                         'Curtailment': episode_data.create_curtailment_df,
+                         'Storage': episode_data.create_storage_df}
             r = functions[change['new']]()
             r[1]['episode_name'] = episode_data.episode_name
             result = pd.concat([result, r[1]])
@@ -852,11 +859,10 @@ class EpisodesDataTransformer:
     return act_episodes[action_id]
 
   @staticmethod
-  def plot_actions_by_station_by_id(df,
-      title: Optional[str] = 'Frequency of actions by substation',
-      **fig_kwargs):
+  def plot_actions_by_station_by_id(df, title: Optional[
+    str] = 'Frequency of actions by substation', **fig_kwargs):
 
     fig = px.sunburst(df, path=['susbtation', 'action_id'], values='nb_action',
-      title=title, )
+                      title=title, )
     fig.update_layout(**fig_kwargs)
     return fig
